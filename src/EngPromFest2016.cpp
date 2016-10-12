@@ -18,36 +18,29 @@
 //Пин сервы поднтия руки
 #define ARM_PIN 5
 
-#define MOTOR_SPEED 100       //Скорость мотора (x/255)
-#define MOTOR_TURN_SPEED 150
-#define TRIM_SPEED 50
+#define MOTOR_SPEED 70      //Скорость мотора (x/255)
+#define MOTOR_TURN_SPEED 110
+
 
 #define THRESHOLD_LEFT 900
 #define THRESHOLD_CENTER 900
 #define THRESHOLD_RIGHT 900
 
+
 #define ARM_MOVE_TIME 300     //Время поднятия руки на нужный угол
 
 //Функции управления движением
 void forward(uint8_t speed);
-void backward(uint8_t speed);
-void turn_left();
-void turn_right();
-void forward_turn(int8_t ang);
+void turn_left(uint8_t turn_speed);
+void turn_right(uint8_t turn_speed);
 void stop();
 
 void arm_up();
 void arm_down();
 
-void wait()
-{
-  stop();
-  delay(600);
-}
-
 //Серва руки
 Servo arm;
-uint8_t state=0;
+uint8_t last_turn = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -73,47 +66,10 @@ void loop()
   uint8_t center = analogRead(CENTER_PIN) > THRESHOLD_CENTER;
   uint8_t right = analogRead(RIGHT_PIN) > THRESHOLD_RIGHT;
 
-  if(!left && center && !right)
-  {
-    //Move forward
-    forward(MOTOR_SPEED);
-    Serial.println("forward");
-    state=0;
-    digitalWrite(13, LOW);
-  }
-  else if(!left && !center && !right)
-  {
-    forward(60);
-    Serial.println("forward white");
-    state=0;
-    digitalWrite(13, LOW);
-  }
-  else if(left && center && !right)
-  {
-    //Turn left
-    turn_left();
-    Serial.println("left");
-    state=1;
-  }
-  else if(left && !right && state==0)
-  {
-    forward_turn(TRIM_SPEED);
-    digitalWrite(13,HIGH)
-;  }
-  if(!left && center && right)
-  {
-    //Turn right
-    turn_right();
-    Serial.println("right");
-    state=2;
+    //going
+  forward(MOTOR_SPEED);
 
-  }
-  else if(!left && right && state==0)
-  {
-    forward_turn(-TRIM_SPEED);
-    digitalWrite(13,HIGH);
-  }
-  else if(left && right && center)
+  if(left && right && center)
   {
     //Stop
     Serial.println("stop");
@@ -138,6 +94,27 @@ void loop()
     }
 
   }
+  //if(!left && center && !right)
+  //  last_turn = 0;
+
+  if(left&&!right)
+  {
+    turn_left(MOTOR_TURN_SPEED);
+    //last_turn = 1;
+  }
+  if(right&&!left)
+  {
+    turn_right(MOTOR_TURN_SPEED);
+    //last_turn = 2;
+  }
+
+  /*if(!center)
+  {
+      if(last_turn==1)
+        turn_left(MOTOR_TURN_SPEED/3);
+      else if(last_turn==2)
+        turn_right(MOTOR_TURN_SPEED/3);
+  }*/
 
   //delay(100);
 }
@@ -159,34 +136,22 @@ void backward(uint8_t speed)
   analogWrite(MR_PIN2, 0);
 }
 
-void turn_left()
+void turn_left(uint8_t turn_speed)
 {
-  analogWrite(ML_PIN1, MOTOR_TURN_SPEED);
+  analogWrite(ML_PIN1, turn_speed+90); //0
   analogWrite(ML_PIN2, 0);
   analogWrite(MR_PIN1, 0);
-  analogWrite(MR_PIN2, MOTOR_TURN_SPEED);
+  analogWrite(MR_PIN2, turn_speed+50);
 }
 
-void turn_right()
+void turn_right(uint8_t turn_speed)
 {
   analogWrite(ML_PIN1, 0);
-  analogWrite(ML_PIN2, MOTOR_TURN_SPEED);
-  analogWrite(MR_PIN1, MOTOR_TURN_SPEED);
+  analogWrite(ML_PIN2, turn_speed+120); //+50
+  analogWrite(MR_PIN1, turn_speed);
   analogWrite(MR_PIN2, 0);
 }
 
-void forward_turn(int8_t ang)
-{
-  analogWrite(ML_PIN1, 0);
-
-  if(ang>0)
-    analogWrite(ML_PIN2, MOTOR_SPEED+ang);
-
-  analogWrite(MR_PIN1, 0);
-
-  if(ang<0)
-    analogWrite(MR_PIN2, MOTOR_SPEED-ang);
-}
 
 void stop()
 {

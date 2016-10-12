@@ -2,21 +2,25 @@
 #include <inttypes.h>
 #include <Servo.h>
 
+//Пины датчиков
 #define LEFT_PIN 10
 #define CENTER_PIN 9
 #define RIGHT_PIN 8
 
+//Пины моторов
 #define ML_PIN1 7
 #define ML_PIN2 6
 #define MR_PIN1 46
 #define MR_PIN2 45
 
+//Пин сервы поднтия руки
 #define ARM_PIN 5
 
-#define THRESHOLD 1000
+#define MOTOR_SPEED 128       //Скорость мотора (x/255)
+#define THRESHOLD 1000        //Значение с датчика, выше которого она черная
+#define ARM_MOVE_TIME 1000    //Время поднятия руки на нужный угол
 
-#define ARM_MOVE_TIME 1000
-
+//Функции управления движением
 void forward();
 void backward();
 void turn_left();
@@ -26,24 +30,19 @@ void stop();
 void arm_up();
 void arm_down();
 
+//Серва руки
 Servo arm;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-
-  pinMode(ML_PIN1, OUTPUT);
-  pinMode(ML_PIN2, OUTPUT);
-  pinMode(MR_PIN1, OUTPUT);
-  pinMode(MR_PIN2, OUTPUT);
   pinMode(13,OUTPUT);
-
-  arm.attach(ARM_PIN);
 }
 
 void loop()
  {
 
+   //Отладочный вывод значекний с датчиков
    #ifdef PRINT_VALS
    uint16_t left_v = analogRead(LEFT_PIN);
    uint16_t center_v = analogRead(CENTER_PIN);
@@ -80,6 +79,9 @@ void loop()
   {
     //Stop
     Serial.println("stop");
+
+    //Установка двигателя
+    arm.attach(ARM_PIN);
     stop();
     delay(1000);
     arm_up();
@@ -87,66 +89,58 @@ void loop()
     arm_down();
     delay(500);
 
-    while(1);
-  }
-  /*else
-  {
-    Serial.println("wtf");
-  }*/
-  /*else
-  {
-    //WTF
-    while(1)
+    //Программа завершена
     {
+      while(1)
       digitalWrite(13,HIGH);
       delay(100);
-      digitalWrite(13,LOW);
+      digitalWrite(13, LOW);
       delay(100);
     }
-  }*/
+  }
 
-  delay(100);
+  //delay(100);
 }
 
-
+//Функции движения
 void forward()
 {
-  digitalWrite(ML_PIN1, LOW);
-  digitalWrite(ML_PIN2, HIGH);
-  digitalWrite(MR_PIN1, LOW);
-  digitalWrite(MR_PIN2, HIGH);
+  analogWrite(ML_PIN1, 0);
+  analogWrite(ML_PIN2, MOTOR_SPEED);
+  analogWrite(MR_PIN1, 0);
+  analogWrite(MR_PIN2, MOTOR_SPEED);
 }
 
 void backward()
 {
-  digitalWrite(ML_PIN1, HIGH);
-  digitalWrite(ML_PIN2, LOW);
-  digitalWrite(MR_PIN1, HIGH);
-  digitalWrite(MR_PIN2, LOW);
+  analogWrite(ML_PIN1, MOTOR_SPEED);
+  analogWrite(ML_PIN2, 0);
+  analogWrite(MR_PIN1, MOTOR_SPEED);
+  analogWrite(MR_PIN2, 0);
 }
 
 void turn_left()
 {
-  digitalWrite(ML_PIN1, HIGH);
-  digitalWrite(ML_PIN2, LOW);
-  digitalWrite(MR_PIN1, LOW);
-  digitalWrite(MR_PIN2, HIGH);
+  analogWrite(ML_PIN1, MOTOR_SPEED);
+  analogWrite(ML_PIN2, 0);
+  analogWrite(MR_PIN1, 0);
+  analogWrite(MR_PIN2, MOTOR_SPEED);
 }
 
 void turn_right()
 {
-  digitalWrite(ML_PIN1, LOW);
-  digitalWrite(ML_PIN2, HIGH);
-  digitalWrite(MR_PIN1, HIGH);
-  digitalWrite(MR_PIN2, LOW);
+  analogWrite(ML_PIN1, 0);
+  analogWrite(ML_PIN2, MOTOR_SPEED);
+  analogWrite(MR_PIN1, MOTOR_SPEED);
+  analogWrite(MR_PIN2, 0);
 }
 
 void stop()
 {
-  digitalWrite(ML_PIN1, LOW);
-  digitalWrite(ML_PIN2, LOW);
-  digitalWrite(MR_PIN1, LOW);
-  digitalWrite(MR_PIN2, LOW);
+  analogWrite(ML_PIN1, 0);
+  analogWrite(ML_PIN2, 0);
+  analogWrite(MR_PIN1, 0);
+  analogWrite(MR_PIN2, 0);
 }
 
 void arm_up()

@@ -2,6 +2,8 @@
 #include <inttypes.h>
 #include <Servo.h>
 
+#define PRINT_VALS 1
+
 //Пины датчиков
 #define LEFT_PIN 10
 #define CENTER_PIN 9
@@ -17,8 +19,11 @@
 #define ARM_PIN 5
 
 #define MOTOR_SPEED 128       //Скорость мотора (x/255)
-#define THRESHOLD 1000        //Значение с датчика, выше которого она черная
-#define ARM_MOVE_TIME 1000    //Время поднятия руки на нужный угол
+#define THRESHOLD_LEFT 950
+#define THRESHOLD_CENTER 950
+#define THRESHOLD_RIGHT 970
+
+#define ARM_MOVE_TIME 300     //Время поднятия руки на нужный угол
 
 //Функции управления движением
 void forward();
@@ -53,9 +58,9 @@ void loop()
    Serial.println(right_v);
    #endif
 
-  uint8_t left = analogRead(LEFT_PIN)  > THRESHOLD;
-  uint8_t center = analogRead(CENTER_PIN) > THRESHOLD;
-  uint8_t right = analogRead(RIGHT_PIN) > THRESHOLD;
+  uint8_t left = analogRead(LEFT_PIN)  > THRESHOLD_LEFT;
+  uint8_t center = analogRead(CENTER_PIN) > THRESHOLD_CENTER;
+  uint8_t right = analogRead(RIGHT_PIN) > THRESHOLD_RIGHT;
 
   if(!left && center && !right)
   {
@@ -90,13 +95,15 @@ void loop()
     delay(500);
 
     //Программа завершена
+
+    while(1)
     {
-      while(1)
       digitalWrite(13,HIGH);
       delay(100);
       digitalWrite(13, LOW);
       delay(100);
     }
+
   }
 
   //delay(100);
